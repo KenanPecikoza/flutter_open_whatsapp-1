@@ -26,6 +26,17 @@ public class FlutterOpenWhatsappPlugin implements MethodCallHandler, FlutterPlug
   private Context context;
 
   /** Plugin registration. */
+  public FlutterOpenWhatsappPlugin() {
+      // All Android plugin classes must support a no-args
+      // constructor. A no-arg constructor is provided by
+      // default without declaring one, but we include it here for
+      // clarity.
+      //
+      // At this point your plugin is instantiated, but it
+      // isn't attached to any Flutter experience. You should not
+      // attempt to do any work here that is related to obtaining
+      // resources or manipulating Flutter.
+  }
 
   public static void registerWith(Registrar registrar) {
     final MethodChannel channel = new MethodChannel(registrar.messenger(), "flutter_open_whatsapp");
