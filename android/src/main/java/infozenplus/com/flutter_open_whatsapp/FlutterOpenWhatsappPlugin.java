@@ -1,11 +1,17 @@
 package infozenplus.com.flutter_open_whatsapp;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.util.Log;
 import android.app.Activity;
 
+import androidx.annotation.NonNull;
+
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityAware;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -13,10 +19,11 @@ import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /** FlutterOpenWhatsappPlugin */
-public class FlutterOpenWhatsappPlugin implements MethodCallHandler {
+public class FlutterOpenWhatsappPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware {
 
-  Activity context;
+  Activity activity;
   MethodChannel methodChannel;
+  private Context context;
 
   /** Plugin registration. */
 
@@ -26,7 +33,7 @@ public class FlutterOpenWhatsappPlugin implements MethodCallHandler {
   }
 
   public FlutterOpenWhatsappPlugin(Activity activity, MethodChannel methodChannel) {
-    this.context = activity;
+    this.activity = activity;
     this.methodChannel = methodChannel;
     this.methodChannel.setMethodCallHandler(this);
   }
@@ -37,7 +44,7 @@ public class FlutterOpenWhatsappPlugin implements MethodCallHandler {
       result.success("Android " + android.os.Build.VERSION.RELEASE);
     } else if(call.method.equalsIgnoreCase("sendSingleMessage")) {
 
-      PackageManager packageManager = context.getPackageManager();
+      PackageManager packageManager = activity.getPackageManager();
       Intent i = new Intent(Intent.ACTION_VIEW);
       try {
         String mobileNo = call.argument("mobileNo");
@@ -47,7 +54,7 @@ public class FlutterOpenWhatsappPlugin implements MethodCallHandler {
         i.setPackage("com.whatsapp");
         i.setData(Uri.parse(url));
         if (i.resolveActivity(packageManager) != null) {
-          context.startActivity(i);
+            activity.startActivity(i);
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -56,4 +63,36 @@ public class FlutterOpenWhatsappPlugin implements MethodCallHandler {
       result.notImplemented();
     }
   }
+
+    @Override
+    public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
+        methodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "flutter_open_whatsapp");
+        methodChannel.setMethodCallHandler(this);
+        context= flutterPluginBinding.getApplicationContext();
+    }
+
+    @Override
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
+        methodChannel.setMethodCallHandler(null);
+    }
+
+    @Override
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding activityPluginBinding) {
+        activity= activityPluginBinding.getActivity();
+    }
+
+    @Override
+    public void onDetachedFromActivityForConfigChanges() {
+        activity=null;
+    }
+
+    @Override
+    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding activityPluginBinding) {
+        activity = activityPluginBinding.getActivity();
+    }
+
+    @Override
+    public void onDetachedFromActivity() {
+        activity=null;
+    }
 }
